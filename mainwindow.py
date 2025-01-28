@@ -5,7 +5,7 @@ from PyQt5.QtGui import QPixmap, QGuiApplication, QImage
 from full_screen_selection import FullScreenSelection
 import pytesseract
 from PIL import Image
-
+import time
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
     def start_screen_selection(self):
         # 進入範圍選擇模式，隱藏主視窗
         self.hide()
+        #time.sleep(0.2)
         self.fullscreen_window = FullScreenSelection(self)
         self.fullscreen_window.show()
 
@@ -59,7 +60,7 @@ class MainWindow(QMainWindow):
         self.area_label.setText(f"選擇的範圍：x={rect.x()}, y={rect.y()}, w={rect.width()}, h={rect.height()}")
         self.ocr_button.setEnabled(True)  # 啟用 OCR 按鈕
         self.show()
-        
+
     pytesseract.pytesseract.tesseract_cmd = r"D:\Tesseract-OCR\tesseract.exe"
     def run_ocr(self):
         if not self.selected_area:
