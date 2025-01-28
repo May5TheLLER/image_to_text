@@ -1,14 +1,16 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QFileDialog, QRubberBand
 from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtGui import QPixmap, QGuiApplication
+from PyQt5.QtGui import QPixmap, QGuiApplication, QImage
 from full_screen_selection import FullScreenSelection
+import pytesseract
+from PIL import Image
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("螢幕擷取與 OCR 工具")
-        self.setGeometry(100, 100, 500, 300)
+        self.setGeometry(0, 0, 400, 200)
         
         # 初始化 UI
         self.init_ui()
@@ -57,16 +59,37 @@ class MainWindow(QMainWindow):
         self.area_label.setText(f"選擇的範圍：x={rect.x()}, y={rect.y()}, w={rect.width()}, h={rect.height()}")
         self.ocr_button.setEnabled(True)  # 啟用 OCR 按鈕
         self.show()
-
+        
+    pytesseract.pytesseract.tesseract_cmd = r"D:\Tesseract-OCR\tesseract.exe"
     def run_ocr(self):
-        # TODO: 實作 OCR 功能
-        # 假設 OCR 提取了文字
-        self.extracted_text = "這是 OCR 提取的文字"
+        if not self.selected_area:
+            return
+
+        # 擷取選定範圍影像
+        screenshot = QGuiApplication.primaryScreen().grabWindow(0)
+        cropped = screenshot.copy(self.selected_area)  # 根據選定範圍裁剪
+
+        # 將 QPixmap 轉換為 QImage
+        cropped_qimage = cropped.toImage()
+
+        # 將 QImage 轉換為 PIL Image
+        width = cropped_qimage.width()
+        height = cropped_qimage.height()
+        buffer = cropped_qimage.bits().asstring(width * height * 4)  # ARGB 格式的每像素 4 位元組
+        image = Image.frombytes("RGBA", (width, height), buffer, "raw", "BGRA")
+
+        # 使用 Tesseract OCR 提取文字
+        self.extracted_text = pytesseract.image_to_string(image, lang="eng")  # 根據需要更改語言
         print(f"OCR 提取結果：{self.extracted_text}")
-        self.save_button.setEnabled(True)  # 啟用儲存按鈕
+
+        # 在 GUI 上啟用儲存文字按鈕
+        self.save_button.setEnabled(True)
+
 
     def save_text(self):
-        # 儲存文字到檔案
+        if not hasattr(self, "extracted_text"):
+            return
+
         file_path, _ = QFileDialog.getSaveFileName(self, "儲存文字", "", "文字檔案 (*.txt)")
         if file_path:
             with open(file_path, "w", encoding="utf-8") as file:
