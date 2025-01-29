@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
     def start_screen_selection(self):
         # 進入範圍選擇模式，隱藏主視窗
         self.hide()
-        #time.sleep(0.2)
+        time.sleep(0.2)
         self.fullscreen_window = FullScreenSelection(self)
         self.fullscreen_window.show()
 
