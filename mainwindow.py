@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QFileDialog, QRubberBand
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QFileDialog, QRubberBand,QTextEdit
 from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QPixmap, QGuiApplication, QImage
 from full_screen_selection import FullScreenSelection
@@ -30,7 +30,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.select_area_button)
 
         # 標籤：顯示選擇的範圍資訊
-        self.area_label = QLabel("尚未選擇文字", self)
+        self.area_label = QTextEdit("尚未選擇文字", self)
+        self.area_label.setReadOnly(False) 
         layout.addWidget(self.area_label)
 
         # 按鈕：執行 OCR
