@@ -14,7 +14,7 @@ class FullScreenSelection(QWidget):
         # 擷取螢幕快照
         self.screenshot = QGuiApplication.primaryScreen().grabWindow(0)
         self.screenshot_label = QLabel(self)
-        self.screenshot_label.setPixmap(QPixmap(self.screenshot))
+        self.screenshot_label.setPixmap(self.screenshot)
         self.screenshot_label.setGeometry(self.screenshot.rect())
 
         # 選擇範圍的相關屬性
@@ -37,3 +37,4 @@ class FullScreenSelection(QWidget):
             self.rubber_band.hide()
             self.parent.set_selected_area(rect)
             self.close()
+
