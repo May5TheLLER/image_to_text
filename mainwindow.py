@@ -34,10 +34,10 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.area_label)
 
         # 按鈕：執行 OCR
-        self.ocr_button = QPushButton("執行 OCR", self)
-        self.ocr_button.clicked.connect(self.run_ocr)
-        self.ocr_button.setEnabled(False)  # 尚未選擇範圍時禁用
-        layout.addWidget(self.ocr_button)
+        #self.ocr_button = QPushButton("執行 OCR", self)
+        #self.ocr_button.clicked.connect(self.run_ocr)
+        #self.ocr_button.setEnabled(False)  # 尚未選擇範圍時禁用
+        #layout.addWidget(self.ocr_button)
 
         # 按鈕：儲存文字
         self.save_button = QPushButton("儲存文字", self)
@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
     def set_selected_area(self, rect):
         self.selected_area = rect
         #self.area_label.setText(f"選擇的範圍：x={rect.x()}, y={rect.y()}, w={rect.width()}, h={rect.height()}")
-        self.ocr_button.setEnabled(True)  # 啟用 OCR 按鈕
+        #self.ocr_button.setEnabled(True)  # 啟用 OCR 按鈕
         self.show()
 
     pytesseract.pytesseract.tesseract_cmd = r"D:\Tesseract-OCR\tesseract.exe"

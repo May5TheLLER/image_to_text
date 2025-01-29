@@ -36,5 +36,6 @@ class FullScreenSelection(QWidget):
             rect = self.rubber_band.geometry()
             self.rubber_band.hide()
             self.parent.set_selected_area(rect)
+            self.parent.run_ocr()
             self.close()
 
