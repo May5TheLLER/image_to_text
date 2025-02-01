@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QFileDialog, QRubberBand,QTextEdit
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QFileDialog, QRubberBand,QTextEdit,QComboBox
 from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QPixmap, QGuiApplication, QImage
 from full_screen_selection import FullScreenSelection
@@ -28,6 +28,13 @@ class MainWindow(QMainWindow):
         self.select_area_button = QPushButton("選擇螢幕範圍", self)
         self.select_area_button.clicked.connect(self.start_screen_selection)
         layout.addWidget(self.select_area_button)
+
+        #設定下拉選單
+        self.select_lang = QComboBox(self)
+        self.select_lang.addItem("英文 (eng)", "eng")
+        self.select_lang.addItem("日文 (jpn)", "jpn")
+        self.select_lang.addItem("繁體中文 (chi_tra)", "chi_tra")
+        layout.addWidget(self.select_lang)
 
         # 標籤：顯示選擇的範圍資訊
         self.area_label = QTextEdit("尚未選擇文字", self)
@@ -64,9 +71,10 @@ class MainWindow(QMainWindow):
 
     pytesseract.pytesseract.tesseract_cmd = r"D:\Tesseract-OCR\tesseract.exe"
     def run_ocr(self):
+        selected_lang = self.select_lang.currentData()
         if not self.selected_area:
             return
-
+        
         # 擷取選定範圍影像
         screenshot = QGuiApplication.primaryScreen().grabWindow(0)
         cropped = screenshot.copy(self.selected_area)  # 根據選定範圍裁剪
@@ -81,7 +89,7 @@ class MainWindow(QMainWindow):
         image = Image.frombytes("RGBA", (width, height), buffer, "raw", "BGRA")
 
         # 使用 Tesseract OCR 提取文字
-        self.extracted_text = pytesseract.image_to_string(image, lang="eng")# 根據需要更改語言
+        self.extracted_text = pytesseract.image_to_string(image, lang=selected_lang)# 根據需要更改語言
         self.area_label.setText(self.extracted_text)
         print(f"OCR 提取結果：{self.extracted_text}")
 
