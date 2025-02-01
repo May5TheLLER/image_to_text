@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBo
 from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QPixmap, QGuiApplication, QImage
 from full_screen_selection import FullScreenSelection
+from pix2tex.cli import LatexOCR
 import pytesseract
 from PIL import Image
 import time
@@ -34,6 +35,7 @@ class MainWindow(QMainWindow):
         self.select_lang.addItem("英文 (eng)", "eng")
         self.select_lang.addItem("日文 (jpn)", "jpn")
         self.select_lang.addItem("繁體中文 (chi_tra)", "chi_tra")
+        self.select_lang.addItem("數學公式 (Latex)", "Latex")
         layout.addWidget(self.select_lang)
 
         # 標籤：顯示選擇的範圍資訊
@@ -89,7 +91,12 @@ class MainWindow(QMainWindow):
         image = Image.frombytes("RGBA", (width, height), buffer, "raw", "BGRA")
 
         # 使用 Tesseract OCR 提取文字
-        self.extracted_text = pytesseract.image_to_string(image, lang=selected_lang)# 根據需要更改語言
+        if (selected_lang != 'Latex'):
+            self.extracted_text = pytesseract.image_to_string(image, lang=selected_lang)# 根據需要更改語言
+        elif(selected_lang == 'Latex'):
+            #image = image.convert("RGB")
+            latex_ocr = LatexOCR()
+            self.extracted_text = latex_ocr(image)
         self.area_label.setText(self.extracted_text)
         print(f"OCR 提取結果：{self.extracted_text}")
 
