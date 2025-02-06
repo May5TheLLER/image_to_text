@@ -1,12 +1,15 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QFileDialog, QRubberBand,QTextEdit,QComboBox
-from PyQt5.QtCore import QRect, Qt
+from PyQt5.QtCore import QRect, Qt,QTimer
 from PyQt5.QtGui import QPixmap, QGuiApplication, QImage
 from full_screen_selection import FullScreenSelection
 from pix2tex.cli import LatexOCR
 import pytesseract
 from PIL import Image
 import time
+import os
+import keyboard
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -18,6 +21,7 @@ class MainWindow(QMainWindow):
 
         # 範圍選擇的相關屬性
         self.selected_area = None
+        self.iscontinuous = False
 
     def init_ui(self):
         # 主容器
@@ -35,6 +39,7 @@ class MainWindow(QMainWindow):
         self.select_lang.addItem("英文 (eng)", "eng")
         self.select_lang.addItem("日文 (jpn)", "jpn")
         self.select_lang.addItem("繁體中文 (chi_tra)", "chi_tra")
+        self.select_lang.addItem("簡體中文 (chi_sim)", "chi_sim")
         self.select_lang.addItem("數學公式 (Latex)", "Latex")
         layout.addWidget(self.select_lang)
 
@@ -55,6 +60,12 @@ class MainWindow(QMainWindow):
         self.save_button.setEnabled(False)  # 尚未執行 OCR 時禁用
         layout.addWidget(self.save_button)
 
+
+        # 按鈕：持續抓取文字
+        self.continuous_button = QPushButton("持續抓取範圍文字", self)
+        self.continuous_button.clicked.connect(self.start_continuous_mode)
+        layout.addWidget(self.continuous_button)
+
         # 設定佈局
         central_widget.setLayout(layout)
 
@@ -62,6 +73,7 @@ class MainWindow(QMainWindow):
         # 進入範圍選擇模式，隱藏主視窗
         self.hide()
         time.sleep(0.2)
+        self.iscontinuous = False
         self.fullscreen_window = FullScreenSelection(self)
         self.fullscreen_window.show()
 
@@ -70,8 +82,22 @@ class MainWindow(QMainWindow):
         #self.area_label.setText(f"選擇的範圍：x={rect.x()}, y={rect.y()}, w={rect.width()}, h={rect.height()}")
         #self.ocr_button.setEnabled(True)  # 啟用 OCR 按鈕
         self.show()
-
-    pytesseract.pytesseract.tesseract_cmd = r"D:\Tesseract-OCR\tesseract.exe"
+    
+    def start_continuous_mode(self):
+        self.iscontinuous = True
+        self.hide()
+        time.sleep(0.2)
+        self.fullscreen_window = FullScreenSelection(self, continuous_mode=True)
+        self.fullscreen_window.show()
+        self.listen_for_shortcut()
+        
+    def listen_for_shortcut(self):
+        """啟動全域鍵盤監聽，確保操作在主執行緒執行"""
+        def on_shortcut():
+            QTimer.singleShot(0, self.run_ocr)  # 將 run_ocr 移動到主執行緒執行
+        keyboard.add_hotkey("/", on_shortcut)
+    #pytesseract.pytesseract.tesseract_cmd = r"D:\Tesseract-OCR\tesseract.exe"
+    pytesseract.pytesseract.tesseract_cmd = os.path.join(os.getcwd(), 'tesseract', 'tesseract.exe')
     def run_ocr(self):
         selected_lang = self.select_lang.currentData()
         if not self.selected_area:
@@ -97,11 +123,17 @@ class MainWindow(QMainWindow):
             #image = image.convert("RGB")
             latex_ocr = LatexOCR()
             self.extracted_text = latex_ocr(image)
+
+        if (self.iscontinuous == True):
+            with open("script.txt", "a", encoding="utf-8") as file:
+                file.write(self.extracted_text + "\n")
+
+
         self.area_label.setText(self.extracted_text)
         print(f"OCR 提取結果：{self.extracted_text}")
 
-
-        # 在 GUI 上啟用儲存文字按鈕
+        self.ocr_ready = False
+        # 在 GUI 上啟用/儲存文字按鈕
         self.save_button.setEnabled(True)
 
 
