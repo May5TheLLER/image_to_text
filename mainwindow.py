@@ -98,8 +98,8 @@ class MainWindow(QMainWindow):
         def on_shortcut():
             QTimer.singleShot(0, self.run_ocr)  # 將 run_ocr 移動到主執行緒執行
         keyboard.add_hotkey("/", on_shortcut)
-    #pytesseract.pytesseract.tesseract_cmd = r"D:\Tesseract-OCR\tesseract.exe"
-    pytesseract.pytesseract.tesseract_cmd = os.path.join(os.getcwd(), 'tesseract', 'tesseract.exe')
+    pytesseract.pytesseract.tesseract_cmd = r"D:\Tesseract-OCR\tesseract.exe"
+    #pytesseract.pytesseract.tesseract_cmd = os.path.join(os.getcwd(), 'tesseract', 'tesseract.exe')
     def translate_text(self, text, target_language="zh-Hant"):
         """ 使用 Azure 翻譯 API 翻譯 OCR 擷取的文字 """
         
