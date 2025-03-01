@@ -9,6 +9,8 @@ from PIL import Image
 import time
 import os
 import keyboard
+import requests
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -48,17 +50,17 @@ class MainWindow(QMainWindow):
         self.area_label.setReadOnly(False) 
         layout.addWidget(self.area_label)
 
+        self.translate_label = QTextEdit("翻譯結果將顯示於此", self)
+        self.translate_label.setReadOnly(False) 
+        layout.addWidget(self.translate_label)
+
         # 按鈕：執行 OCR
         #self.ocr_button = QPushButton("執行 OCR", self)
         #self.ocr_button.clicked.connect(self.run_ocr)
         #self.ocr_button.setEnabled(False)  # 尚未選擇範圍時禁用
         #layout.addWidget(self.ocr_button)
 
-        # 按鈕：儲存文字
-        self.save_button = QPushButton("儲存文字", self)
-        self.save_button.clicked.connect(self.save_text)
-        self.save_button.setEnabled(False)  # 尚未執行 OCR 時禁用
-        layout.addWidget(self.save_button)
+
 
 
         # 按鈕：持續抓取文字
@@ -98,6 +100,40 @@ class MainWindow(QMainWindow):
         keyboard.add_hotkey("/", on_shortcut)
     #pytesseract.pytesseract.tesseract_cmd = r"D:\Tesseract-OCR\tesseract.exe"
     pytesseract.pytesseract.tesseract_cmd = os.path.join(os.getcwd(), 'tesseract', 'tesseract.exe')
+    def translate_text(self, text, target_language="zh-Hant"):
+        """ 使用 Azure 翻譯 API 翻譯 OCR 擷取的文字 """
+        
+        # 設定 Azure 翻譯 API 相關資訊
+        subscription_key = "38CTfjTTgS6XVfUsqPZ6Ud9SGmWQ0oqrkbo1vFSgCIkWPLPg6cysJQQJ99BCAC3pKaRXJ3w3AAAbACOGgvW3"
+        endpoint = "https://api.cognitive.microsofttranslator.com/"
+        location = "eastasia"  # 根據你的 Azure 服務區域
+        
+        path = "/translate"
+        url = endpoint + path
+
+        headers = {
+            'Ocp-Apim-Subscription-Key': subscription_key,
+            'Ocp-Apim-Subscription-Region': location,
+            'Content-type': 'application/json'
+        }
+        
+        params = {
+            'api-version': '3.0',
+            'to': target_language  # 目標語言
+        }
+
+        body = [{'text': text}]
+
+        response = requests.post(url, params=params, headers=headers, json=body)
+        
+        if response.status_code == 200:
+            translation = response.json()
+            translated_text = translation[0]['translations'][0]['text']
+            return translated_text
+        else:
+            print("翻譯 API 請求失敗:", response.text)
+            return None
+    
     def run_ocr(self):
         selected_lang = self.select_lang.currentData()
         if not self.selected_area:
@@ -131,21 +167,14 @@ class MainWindow(QMainWindow):
 
         self.area_label.setText(self.extracted_text)
         print(f"OCR 提取結果：{self.extracted_text}")
+        translated_text = self.translate_text(self.extracted_text, "zh-Hant")
+
+        if translated_text and selected_lang != 'Latex':
+            self.translate_label.setText(translated_text)
+            print(f"翻譯結果：{translated_text}")
 
         self.ocr_ready = False
         # 在 GUI 上啟用/儲存文字按鈕
-        self.save_button.setEnabled(True)
-
-
-    def save_text(self):
-        if not hasattr(self, "extracted_text"):
-            return
-
-        file_path, _ = QFileDialog.getSaveFileName(self, "儲存文字", "", "文字檔案 (*.txt)")
-        if file_path:
-            with open(file_path, "w", encoding="utf-8") as file:
-                file.write(self.extracted_text)
-            print(f"文字已儲存到：{file_path}")
 
 
 if __name__ == "__main__":

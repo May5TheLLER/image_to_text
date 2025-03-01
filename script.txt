@@ -1,0 +1,33 @@
+self.setWindowTitle
+
+se€lT.Setsceometry (ye,
+
+# P#{E UL
+
+seir.init_ui()
+
+失落 小 站 - galgame 资 源 站 站
+
+失落 的 小 站
+
+
+失落 的 小 站 | upset gal
+
+业 入 上 证 址 人 半 是 王 琢 忆 圭 的 mm 2
+
+LI galgame.us
+
+和
+
+失落 的 小 站 . 十 分 简约 的 一 个 站 点 。 光
+
+self.area_label.
+
+PPINtQT VON FER
+
+self.ocr_ready =
+
+buffer = cropped_qimage.bits().asstring(width * height * 4)
+
+#image = image. convert ("RGB")
+
