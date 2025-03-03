@@ -1,7 +1,6 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QFileDialog, QRubberBand
+from PyQt5.QtWidgets import QLabel,  QWidget,  QRubberBand
 from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtGui import QPixmap, QGuiApplication
+from PyQt5.QtGui import  QGuiApplication
 
 class FullScreenSelection(QWidget):
     def __init__(self, parent, continuous_mode=False):

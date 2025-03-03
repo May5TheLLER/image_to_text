@@ -9,7 +9,8 @@ from PIL import Image
 import time
 import os
 import keyboard
-import requests
+from translate_tools import azure_translate_text, deeplx_translate_text
+from chatgpt_login import ChatGPTController
 
 
 class MainWindow(QMainWindow):
@@ -100,40 +101,8 @@ class MainWindow(QMainWindow):
         keyboard.add_hotkey("/", on_shortcut)
     pytesseract.pytesseract.tesseract_cmd = r"D:\Tesseract-OCR\tesseract.exe"
     #pytesseract.pytesseract.tesseract_cmd = os.path.join(os.getcwd(), 'tesseract', 'tesseract.exe')
-    def translate_text(self, text, target_language="zh-Hant"):
-        """ 使用 Azure 翻譯 API 翻譯 OCR 擷取的文字 """
-        
-        # 設定 Azure 翻譯 API 相關資訊
-        subscription_key = "38CTfjTTgS6XVfUsqPZ6Ud9SGmWQ0oqrkbo1vFSgCIkWPLPg6cysJQQJ99BCAC3pKaRXJ3w3AAAbACOGgvW3"
-        endpoint = "https://api.cognitive.microsofttranslator.com/"
-        location = "eastasia"  # 根據你的 Azure 服務區域
-        
-        path = "/translate"
-        url = endpoint + path
 
-        headers = {
-            'Ocp-Apim-Subscription-Key': subscription_key,
-            'Ocp-Apim-Subscription-Region': location,
-            'Content-type': 'application/json'
-        }
-        
-        params = {
-            'api-version': '3.0',
-            'to': target_language  # 目標語言
-        }
 
-        body = [{'text': text}]
-
-        response = requests.post(url, params=params, headers=headers, json=body)
-        
-        if response.status_code == 200:
-            translation = response.json()
-            translated_text = translation[0]['translations'][0]['text']
-            return translated_text
-        else:
-            print("翻譯 API 請求失敗:", response.text)
-            return None
-    
     def run_ocr(self):
         selected_lang = self.select_lang.currentData()
         if not self.selected_area:
@@ -167,7 +136,10 @@ class MainWindow(QMainWindow):
 
         self.area_label.setText(self.extracted_text)
         print(f"OCR 提取結果：{self.extracted_text}")
-        translated_text = self.translate_text(self.extracted_text, "zh-Hant")
+        #translated_text = azure_translate_text(self.extracted_text, "zh-Hant")
+        #translated_text = deeplx_translate_text(self.extracted_text, "ZH")
+
+        translated_text = self.chatgpt.send_request(self.extracted_text, "繁體中文")
 
         if translated_text and selected_lang != 'Latex':
             self.translate_label.setText(translated_text)
