@@ -9,7 +9,7 @@ class ChatGPTController:
     def __init__(self):
         """ 初始化 ChatGPT 瀏覽器，只在第一次呼叫時開啟 """
         self.driver = None  # 儲存瀏覽器實例
-        self.init_browser()  # 開啟 ChatGPT
+        #self.init_browser()  # 開啟 ChatGPT
 
     def init_browser(self):
         """ 啟動 ChatGPT 瀏覽器並開啟頁面 """

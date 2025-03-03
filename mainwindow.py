@@ -17,14 +17,23 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("螢幕擷取與 OCR 工具")
-        self.setGeometry(0, 0, 400, 200)
+
+        self.setGeometry(100, 100, 700, 500)
         
-        # 初始化 UI
+        self.chatgpt_controller = ChatGPTController()
+
+        # 初始化 U
         self.init_ui()
 
         # 範圍選擇的相關屬性
         self.selected_area = None
         self.iscontinuous = False
+
+
+        # 設定字體大小
+        font = self.font()
+        font.setPointSize(14)
+        self.setFont(font)
 
     def init_ui(self):
         # 主容器
@@ -32,13 +41,14 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout()
 
-        # 按鈕：選擇螢幕範圍
         self.select_area_button = QPushButton("選擇螢幕範圍", self)
         self.select_area_button.clicked.connect(self.start_screen_selection)
         layout.addWidget(self.select_area_button)
 
         #設定下拉選單
+
         self.select_lang = QComboBox(self)
+        self.select_lang.addItem("請選擇辨識之語言", "eng")
         self.select_lang.addItem("英文 (eng)", "eng")
         self.select_lang.addItem("日文 (jpn)", "jpn")
         self.select_lang.addItem("繁體中文 (chi_tra)", "chi_tra")
@@ -51,17 +61,32 @@ class MainWindow(QMainWindow):
         self.area_label.setReadOnly(False) 
         layout.addWidget(self.area_label)
 
+        self.select_trans_method = QComboBox(self)
+        self.select_trans_method.addItem("請選擇翻譯方法，預設無需翻譯", "no")
+        self.select_trans_method.addItem("Azure API 翻譯", "azure")
+        self.select_trans_method.addItem("ChatGPT 網頁翻譯", "chatgpt")
+        layout.addWidget(self.select_trans_method)
+
         self.translate_label = QTextEdit("翻譯結果將顯示於此", self)
         self.translate_label.setReadOnly(False) 
         layout.addWidget(self.translate_label)
+
+        # 按鈕：打開 ChatGPT 網頁
+        self.open_chatgpt_button = QPushButton("打開 ChatGPT 網頁", self)
+        self.open_chatgpt_button.setEnabled(False)  # 預設禁用
+        self.open_chatgpt_button.clicked.connect(self.chatgpt_controller.init_browser)
+        layout.addWidget(self.open_chatgpt_button)
+
+        # 當下拉選單選擇改變時，檢查是否啟用按鈕
+        self.select_trans_method.currentIndexChanged.connect(self.check_chatgpt_button)
+
+
 
         # 按鈕：執行 OCR
         #self.ocr_button = QPushButton("執行 OCR", self)
         #self.ocr_button.clicked.connect(self.run_ocr)
         #self.ocr_button.setEnabled(False)  # 尚未選擇範圍時禁用
         #layout.addWidget(self.ocr_button)
-
-
 
 
         # 按鈕：持續抓取文字
@@ -71,6 +96,12 @@ class MainWindow(QMainWindow):
 
         # 設定佈局
         central_widget.setLayout(layout)
+
+    def check_chatgpt_button(self):
+        if self.select_trans_method.currentData() == "chatgpt":
+            self.open_chatgpt_button.setEnabled(True)
+        else:
+            self.open_chatgpt_button.setEnabled(False)
 
     def start_screen_selection(self):
         # 進入範圍選擇模式，隱藏主視窗
@@ -133,15 +164,21 @@ class MainWindow(QMainWindow):
             with open("script.txt", "a", encoding="utf-8") as file:
                 file.write(self.extracted_text + "\n")
 
-
+        # 將提取的文字中的換行符號替換成空格
+        self.extracted_text = self.extracted_text.replace('\n', ' ')
         self.area_label.setText(self.extracted_text)
+
+
         print(f"OCR 提取結果：{self.extracted_text}")
+
+        #if self.select_lang.currentData() == 'chatgpt':
+        translated_text = self.chatgpt_controller.send_request(self.extracted_text, "繁體中文")
+        #elif self.select_lang.currentData() == 'azure':
         #translated_text = azure_translate_text(self.extracted_text, "zh-Hant")
         #translated_text = deeplx_translate_text(self.extracted_text, "ZH")
 
-        translated_text = self.chatgpt.send_request(self.extracted_text, "繁體中文")
-
-        if translated_text and selected_lang != 'Latex':
+        
+        if selected_lang != 'Latex':
             self.translate_label.setText(translated_text)
             print(f"翻譯結果：{translated_text}")
 
